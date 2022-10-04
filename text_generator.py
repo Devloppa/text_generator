@@ -36,6 +36,7 @@ class MyCorpus:
 
     def file_to_string(self):
         self.file_str = self.file.read()
+        self.file.close()
         self.get_file_object()
 
     def get_file_object(self):

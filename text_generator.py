@@ -81,8 +81,8 @@ class MyCorpus:
         self.bigrams = tuple(bigrams(self.tokens))
 
     def create_nltk_ngram(self):
-        self.bigrams = list(ngrams(self.tokens, self.ngram))
-    
+        self.bigrams = tuple(ngrams(self.tokens, self.ngram))
+
     def print_bigram(self, num):
         print(f"Head: {self.bigrams[num][0]} Tail: {self.bigrams[num][1]}")
 

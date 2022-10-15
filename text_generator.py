@@ -1,21 +1,24 @@
 from nltk.tokenize import regexp_tokenize
+from nltk import bigrams
+from nltk.util import ngrams
 
 
 class MyCorpus:
 
-    def __init__(self):
+    def __init__(self, ngram=None):
         self.file_name = input()
         self.file = None
         self.file_str = ""
         self.tokens = []
         self.unique_tokens = None
         self.bigrams = None
+        self.ngram = ngram
 
         self.get_file_object()
         self.file_to_string()
         self.regexp_tokenize()
         self.get_unique_tokens()
-        self.create_bigrams()
+        self.create_nltk_ngram()
         self.print_bigrams_stats()
         self.interact_with_bigrams()
 
@@ -74,6 +77,12 @@ class MyCorpus:
     def create_bigrams(self):
         self.bigrams = [self.tokens[i:i+2] for i in range(len(self.tokens) - 1)]
 
+    def create_nltk_bigrams(self):
+        self.bigrams = tuple(bigrams(self.tokens))
+
+    def create_nltk_ngram(self):
+        self.bigrams = list(ngrams(self.tokens, self.ngram))
+    
     def print_bigram(self, num):
         print(f"Head: {self.bigrams[num][0]} Tail: {self.bigrams[num][1]}")
 
@@ -96,4 +105,4 @@ class MyCorpus:
             self.interact_with_bigrams()
 
 
-app = MyCorpus()
+app = MyCorpus(ngram=2)

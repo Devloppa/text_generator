@@ -21,6 +21,7 @@ class MyCorpus:
         self.regexp_tokenize()
         self.get_unique_tokens()
         self.create_nltk_bigrams()
+        self.create_freq_dist()
         self.create_markov_chain()
         self.interact_markov_chain()
 
@@ -134,7 +135,7 @@ class MyCorpus:
             self.interact_markov_chain()
 
     def create_freq_dist(self):
-        self.freq_dist = dict(self.bigrams)
+        self.freq_dist = dict(FreqDist(self.bigrams))
 
     def interact_freq_dist(self):
         head = input()
@@ -148,6 +149,7 @@ class MyCorpus:
                 print(f"Tail: {pair[1]} Count: {self.freq_dist[pair]}")
         if not_found:
             print("Key Error. The requested word is not in the model. Please input another word.")
+        self.interact_freq_dist()
 
 
 app = MyCorpus()

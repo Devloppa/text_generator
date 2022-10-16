@@ -1,11 +1,11 @@
 from nltk.tokenize import regexp_tokenize
-from nltk import bigrams
+from nltk import bigrams, FreqDist
 from nltk.util import ngrams
 
 
 class MyCorpus:
 
-    def __init__(self, ngram=None):
+    def __init__(self, ngram=2):
         self.file_name = input()
         self.file = None
         self.file_str = ""
@@ -13,14 +13,16 @@ class MyCorpus:
         self.unique_tokens = None
         self.bigrams = None
         self.ngram = ngram
+        self.markov_chain = {}
+        self.freq_dist = None
 
         self.get_file_object()
         self.file_to_string()
         self.regexp_tokenize()
         self.get_unique_tokens()
-        self.create_nltk_ngram()
-        self.print_bigrams_stats()
-        self.interact_with_bigrams()
+        self.create_nltk_bigrams()
+        self.create_markov_chain()
+        self.interact_markov_chain()
 
     def __enter__(self):
         return self
@@ -104,5 +106,48 @@ class MyCorpus:
             print("Index Error. Please input a value that is not greater than the number of all bigrams.")
             self.interact_with_bigrams()
 
+    def create_markov_chain(self):
+        for bigram in self.bigrams:
+            self.markov_chain.setdefault(bigram[0], {}).setdefault(bigram[1], 0)
+            self.markov_chain[bigram[0]][bigram[1]] += 1
 
-app = MyCorpus(ngram=2)
+    def interact_markov_chain(self):
+        try:
+            head = input()
+            if head == "exit":
+                return
+            print(f"Head: {head}")
+            for key, value in self.markov_chain[head].items():
+                print(f"Tail: {key} Count: {value}")
+            self.interact_markov_chain()
+        except ValueError:
+            print("Value Error. Please input an integer.")
+            self.interact_markov_chain()
+        except TypeError:
+            print("Type Error. Please input an integer.")
+            self.interact_markov_chain()
+        except KeyError:
+            print("Key Error. The requested word is not in the model. Please input another word.")
+            self.interact_markov_chain()
+        except IndexError:
+            print("Index Error. Please input a value that is not greater than the number of all bigrams.")
+            self.interact_markov_chain()
+
+    def create_freq_dist(self):
+        self.freq_dist = dict(self.bigrams)
+
+    def interact_freq_dist(self):
+        head = input()
+        if head == "exit":
+            return
+        not_found = True
+        print(f"Head: {head}")
+        for pair in self.freq_dist:
+            if pair[0] == head:
+                not_found = False
+                print(f"Tail: {pair[1]} Count: {self.freq_dist[pair]}")
+        if not_found:
+            print("Key Error. The requested word is not in the model. Please input another word.")
+
+
+app = MyCorpus()

@@ -1,11 +1,12 @@
 from nltk.tokenize import regexp_tokenize
 from nltk import bigrams, FreqDist
 from nltk.util import ngrams
+from random import choices, choice
 
 
 class MyCorpus:
 
-    def __init__(self, ngram=2):
+    def __init__(self, ngram=2, n_sent=10):
         self.file_name = input()
         self.file = None
         self.file_str = ""
@@ -15,6 +16,8 @@ class MyCorpus:
         self.ngram = ngram
         self.markov_chain = {}
         self.freq_dist = None
+        self.num_of_sent = n_sent
+        self.gen_sentences = []
 
         self.get_file_object()
         self.file_to_string()
@@ -23,7 +26,8 @@ class MyCorpus:
         self.create_nltk_bigrams()
         self.create_freq_dist()
         self.create_markov_chain()
-        self.interact_markov_chain()
+        self.generate_sentences()
+        self.print_rand_sentences()
 
     def __enter__(self):
         return self
@@ -108,9 +112,9 @@ class MyCorpus:
             self.interact_with_bigrams()
 
     def create_markov_chain(self):
-        for bigram in self.bigrams:
-            self.markov_chain.setdefault(bigram[0], {}).setdefault(bigram[1], 0)
-            self.markov_chain[bigram[0]][bigram[1]] += 1
+        for head, tail in self.bigrams:
+            self.markov_chain.setdefault(head, FreqDist())
+            self.markov_chain[head][tail] += 1
 
     def interact_markov_chain(self):
         try:
@@ -150,6 +154,22 @@ class MyCorpus:
         if not_found:
             print("Key Error. The requested word is not in the model. Please input another word.")
         self.interact_freq_dist()
+
+    def generate_sentences(self):
+        for _ in range(self.num_of_sent):
+            sentence = []
+            prev_word = choice(list(self.markov_chain.keys()))
+            sentence.append(prev_word)
+            for _ in range(9):
+                population = list(self.markov_chain[prev_word].keys())
+                weight = list(self.markov_chain[prev_word].values())
+                next_word = choices(population, weight)
+                sentence.append(next_word[0])
+                prev_word = next_word[0]
+            self.gen_sentences.append(" ".join(sentence))
+
+    def print_rand_sentences(self):
+        print("\n".join(self.gen_sentences))
 
 
 app = MyCorpus()

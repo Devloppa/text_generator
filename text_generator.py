@@ -1,18 +1,21 @@
+import re
 from nltk.tokenize import regexp_tokenize
 from nltk import bigrams, FreqDist
 from nltk.util import ngrams
 from random import choices, choice
+from collections import Counter
 
 
 class MyCorpus:
 
-    def __init__(self, ngram=2, n_sent=10):
+    def __init__(self, ngram=3, n_sent=10):
         self.file_name = input()
         self.file = None
         self.file_str = ""
         self.tokens = []
         self.unique_tokens = None
         self.bigrams = None
+        self.trigrams = None
         self.ngram = ngram
         self.markov_chain = {}
         self.freq_dist = None
@@ -23,11 +26,11 @@ class MyCorpus:
         self.file_to_string()
         self.regexp_tokenize()
         self.get_unique_tokens()
-        self.create_nltk_bigrams()
+        self.create_nltk_ngram()
         self.create_freq_dist()
         self.create_markov_chain()
-        self.generate_sentences()
-        self.print_rand_sentences()
+        self.generate_sentence()
+        self.print_sentences()
 
     def __enter__(self):
         return self
@@ -82,13 +85,13 @@ class MyCorpus:
             self.interact_with_corpus()
 
     def create_bigrams(self):
-        self.bigrams = [self.tokens[i:i+2] for i in range(len(self.tokens) - 1)]
+        self.bigrams = [self.tokens[i:i + 2] for i in range(len(self.tokens) - 1)]
 
     def create_nltk_bigrams(self):
         self.bigrams = tuple(bigrams(self.tokens))
 
     def create_nltk_ngram(self):
-        self.bigrams = tuple(ngrams(self.tokens, self.ngram))
+        self.trigrams = tuple(ngrams(self.tokens, self.ngram))
 
     def print_bigram(self, num):
         print(f"Head: {self.bigrams[num][0]} Tail: {self.bigrams[num][1]}")
@@ -112,8 +115,10 @@ class MyCorpus:
             self.interact_with_bigrams()
 
     def create_markov_chain(self):
-        for head, tail in self.bigrams:
-            self.markov_chain.setdefault(head, FreqDist())
+        for trigram in self.trigrams:
+            head = f"{trigram[0]} {trigram[1]}"
+            tail = f"{trigram[2]}"
+            self.markov_chain.setdefault(head, Counter())
             self.markov_chain[head][tail] += 1
 
     def interact_markov_chain(self):
@@ -155,7 +160,7 @@ class MyCorpus:
             print("Key Error. The requested word is not in the model. Please input another word.")
         self.interact_freq_dist()
 
-    def generate_sentences(self):
+    def generate_random_text(self):
         for _ in range(self.num_of_sent):
             sentence = []
             prev_word = choice(list(self.markov_chain.keys()))
@@ -168,7 +173,23 @@ class MyCorpus:
                 prev_word = next_word[0]
             self.gen_sentences.append(" ".join(sentence))
 
-    def print_rand_sentences(self):
+    def generate_sentence(self):
+        texts = [head for head in self.markov_chain.keys() if re.match(r"[A-Z][a-z]+ \w+$", head)]
+        for _ in range(self.num_of_sent):
+            first_word = choice(texts)
+            prev_word = first_word
+            sentence = [first_word]
+            while True:
+                population = list(self.markov_chain[prev_word].keys())
+                weight = list(self.markov_chain[prev_word].values())
+                next_word = choices(population, weight)[0]
+                sentence.append(next_word)
+                prev_word = prev_word.split()[1] + " " + next_word
+                if len(sentence) > 3 and re.match(r"^[A-z]+[.!?]+$", next_word):
+                    self.gen_sentences.append(" ".join(sentence))
+                    break
+
+    def print_sentences(self):
         print("\n".join(self.gen_sentences))
 
 
